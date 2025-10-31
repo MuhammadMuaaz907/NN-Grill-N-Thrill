@@ -68,10 +68,10 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative rounded-2xl overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+      className="group relative rounded-xl sm:rounded-2xl overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
     >
       {/* Image Container - Fully Clickable */}
-      <div className="relative flex-1 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden min-h-64">
+      <div className="relative flex-1 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden min-h-48 sm:min-h-56 md:min-h-64">
         {item.image ? (
           <img
             src={item.image}
@@ -80,19 +80,19 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-6xl">🍽️</span>
+            <span className="text-4xl sm:text-5xl md:text-6xl">🍽️</span>
           </div>
         )}
 
         {/* Favorite Button - Stops Propagation */}
         <button
           onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-200 z-10 hover:scale-110"
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white rounded-full p-1.5 sm:p-2 shadow-md hover:shadow-lg transition-all duration-200 z-10 hover:scale-110"
           aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
         >
           <Heart
-            size={20}
-            className={`transition-colors ${
+            size={18}
+            className={`sm:w-5 sm:h-5 transition-colors ${
               isFavorited
                 ? 'fill-pink-600 text-pink-600'
                 : 'text-gray-400 hover:text-pink-600'
@@ -101,7 +101,7 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
         </button>
 
         {/* Price Badge - Fully Clickable */}
-        <div className="absolute bottom-3 right-3 bg-white rounded-full px-4 py-2 shadow-md font-bold text-gray-900 pointer-events-none">
+        <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 bg-white rounded-full px-3 py-1.5 sm:px-4 sm:py-2 shadow-md font-bold text-gray-900 pointer-events-none text-sm sm:text-base">
           Rs. {item.price}
         </div>
 
@@ -112,13 +112,13 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
       </div>
 
       {/* Content Section - Fully Clickable */}
-      <div className="p-4 flex flex-col flex-1 justify-between">
+      <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 line-clamp-2">
             {item.name}
           </h3>
 
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+          <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2">
             {item.description}
           </p>
         </div>
@@ -127,7 +127,7 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
         <button
           onClick={handleAddToCartClick}
           disabled={isLoading || isAdded}
-          className={`w-full font-semibold py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 ${
+          className={`w-full font-semibold py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 text-sm sm:text-base ${
             isAdded
               ? 'bg-green-600 hover:bg-green-700 text-white'
               : isLoading
@@ -138,17 +138,17 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
         >
           {isAdded ? (
             <>
-              <Check size={20} />
+              <Check size={18} className="sm:w-5 sm:h-5" />
               <span>Added to Cart</span>
             </>
           ) : isLoading ? (
             <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               <span>Adding...</span>
             </>
           ) : (
             <>
-              <Plus size={20} />
+              <Plus size={18} className="sm:w-5 sm:h-5" />
               <span>Add to Cart</span>
             </>
           )}

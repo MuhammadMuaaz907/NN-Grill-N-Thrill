@@ -14,9 +14,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onSlideChange
 }) => {
   return (
-    <section className="pt-24 pb-0">
+    <section className="pt-16 sm:pt-20 md:pt-24 pb-0">
       {/* Decorative flower branch */}
-      <div className="absolute top-24 left-10 w-32 h-32 opacity-40 pointer-events-none">
+      <div className="absolute top-24 left-4 sm:left-6 md:left-10 w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 opacity-40 pointer-events-none hidden sm:block">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <path
             d="M50,80 Q40,60 30,40 Q25,20 50,10 Q75,20 70,40 Q60,60 50,80"

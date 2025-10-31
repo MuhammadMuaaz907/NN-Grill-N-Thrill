@@ -28,22 +28,22 @@ export const MenuSearch: React.FC<MenuSearchProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="my-8 px-6">
+    <form onSubmit={handleSubmit} className="my-6 md:my-8 px-4 sm:px-6">
       <div className="relative max-w-2xl mx-auto">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={placeholder}
-          className="w-full px-6 py-4 rounded-full border-2 border-pink-400 focus:border-pink-600 focus:outline-none text-gray-900 placeholder-pink-400 transition-colors"
+          className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-full border-2 border-pink-400 focus:border-pink-600 focus:outline-none text-gray-900 placeholder-pink-400 transition-colors text-sm sm:text-base"
           aria-label="Search menu items"
         />
         <button
           type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-pink-600 hover:bg-pink-700 text-white p-3 rounded-full transition duration-200"
+          className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 bg-pink-600 hover:bg-pink-700 text-white p-2 sm:p-3 rounded-full transition duration-200"
           aria-label="Search"
         >
-          <Search size={20} />
+          <Search size={18} className="sm:w-5 sm:h-5" />
         </button>
       </div>
     </form>

@@ -198,7 +198,7 @@ function HomeContent() {
         location={RESTAURANT_INFO.location}
         phoneNumber={RESTAURANT_INFO.phoneNumber}
       />
-      <main className="pt-20">
+      <main className="pt-16 sm:pt-20">
         <HeroSection items={CAROUSEL_ITEMS} />
         <CategoryMenu
           categories={categories}
@@ -213,10 +213,10 @@ function HomeContent() {
           onClear={handleClear}
         />
         
-        <section className="bg-gradient-to-b from-white to-gray-50 py-12 px-6">
+        <section className="bg-gradient-to-b from-white to-gray-50 py-8 md:py-12 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
             <PopularItemsHeader title="Popular Items" subtitle="Most ordered right now" showEmoji={true} />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {popularItems.map((item) => (
                 <MenuItemCard
                   key={item.id}
@@ -232,9 +232,9 @@ function HomeContent() {
         {categories.map((category) => (
           <div key={category.id} id={`category-${category.id}`}>
             <CategoryHeroSection category={category} categoryDescription={categoryDescriptions} />
-            <div className="px-6 py-8">
+            <div className="px-4 sm:px-6 py-6 sm:py-8">
               <div className="max-w-7xl mx-auto">
-                <p className="text-gray-600 text-sm mb-8">
+                <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-8">
                   Showing{' '}
                   <span className="font-bold text-pink-600">
                     {menuItems.filter((item) => item.categoryId === category.id).length}
@@ -242,7 +242,7 @@ function HomeContent() {
                   items in{' '}
                   <span className="font-bold text-pink-600">{category.name}</span>
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {menuItems.filter((item) => item.categoryId === category.id).map((item) => (
                     <MenuItemCard
                       key={item.id}
