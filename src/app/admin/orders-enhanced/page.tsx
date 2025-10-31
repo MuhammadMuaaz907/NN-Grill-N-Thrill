@@ -96,25 +96,25 @@ export default function AdminOrdersEnhanced() {
       // Use Web Audio API with fallback for Safari
       const AudioContextClass = window.AudioContext || (window as unknown as Record<string, unknown>)['webkitAudioContext'];
       if (AudioContextClass) {
-        // Reuse a single AudioContext where possible to avoid browser limits
-        if (!audioContextRef.current) {
-          audioContextRef.current = new AudioContextClass() as AudioContext;
-        }
-        const audioContext = audioContextRef.current;
-        // Some browsers suspend context until user interaction
-        if (audioContext.state === 'suspended') {
-          await audioContext.resume();
-        }
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
+      // Reuse a single AudioContext where possible to avoid browser limits
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContextClass() as AudioContext;
+      }
+      const audioContext = audioContextRef.current;
+      // Some browsers suspend context until user interaction
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
         return;
       }
       // Fallback: HTML5 Audio with embedded data URI beep (440Hz tone)

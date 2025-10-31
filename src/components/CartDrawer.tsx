@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Add this import
-import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { X, Trash2, Plus, Minus, Package } from 'lucide-react';
 import { MenuItem } from '@/types';
 
 interface CartItem extends MenuItem {
@@ -51,6 +51,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     router.push(`/guestcheckout?subtotal=${subtotal}&tax=${tax}&deliveryFee=${deliveryFee}&grandTotal=${grandTotal}&items=${itemsParam}`);
   };
 
+  const handleTrackOrder = () => {
+    onClose(); // Close the cart drawer first
+    router.push('/order-tracking'); // Navigate to order tracking page
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -92,12 +97,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 Looks like you haven&apos;t added anything to your cart yet. Start exploring and shop your
                 favorite items!
               </p>
-              <button
-                onClick={onClose}
-                className="bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition"
-              >
-                Browse Products
-              </button>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={onClose}
+                  className="bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+                >
+                  Browse Products
+                </button>
+                <button
+                  onClick={handleTrackOrder}
+                  className="bg-white border-2 border-pink-600 text-pink-600 hover:bg-pink-50 font-semibold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2"
+                >
+                  <Package size={18} />
+                  Track Your Order
+                </button>
+              </div>
             </div>
           ) : (
             <>
