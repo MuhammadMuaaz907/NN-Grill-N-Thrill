@@ -22,7 +22,6 @@ function HomeContent() {
   const {
     items,
     isOpen,
-    openCart,
     closeCart,
     removeFromCart,
     updateQuantity,
@@ -34,7 +33,6 @@ function HomeContent() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // State to track search input
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularItems, setPopularItems] = useState<MenuItem[]>([]);
@@ -48,12 +46,30 @@ function HomeContent() {
         const result = await response.json();
         
         if (result.success) {
-          setMenuItems(result.data.menuItems);
-          setCategories(result.data.categories);
-          setPopularItems(result.data.popularItems);
+          const { menuItems = [], categories = [], popularItems = [] } = result.data;
+          
+          console.log('✅ Menu data fetched:', {
+            menuItems: menuItems.length,
+            categories: categories.length,
+            popularItems: popularItems.length
+          });
+          
+          setMenuItems(menuItems);
+          setCategories(categories);
+          setPopularItems(popularItems);
+        } else {
+          console.error('❌ API Error:', result.error, result.details);
+          // Set empty arrays to show no items message
+          setMenuItems([]);
+          setCategories([]);
+          setPopularItems([]);
         }
       } catch (error) {
-        console.error('Error fetching menu data:', error);
+        console.error('❌ Error fetching menu data:', error);
+        // Set empty arrays on error
+        setMenuItems([]);
+        setCategories([]);
+        setPopularItems([]);
       } finally {
         setIsLoading(false);
       }
@@ -111,19 +127,17 @@ function HomeContent() {
 
   // Handle search functionality
   const handleSearch = (query: string) => {
-    setSearchQuery(query); // Update search query state
     // Optional: Filter items based on query (case-insensitive)
     const filteredItems = menuItems.filter((item) =>
       item.name.toLowerCase().includes(query.toLowerCase())
     );
     console.log('Filtered items:', filteredItems); // For debugging
-    // You can update the UI to show filtered items (e.g., replace menuItems with filteredItems)
+    // Future: Implement search filtering UI
   };
 
   // Handle clear search
   const handleClear = () => {
-    setSearchQuery('');
-    // Reset to original items if needed
+    // Future: Reset search state
   };
 
   // Get recommended items
@@ -191,6 +205,36 @@ function HomeContent() {
     );
   }
 
+  // Show message if no menu items or categories
+  if (!isLoading && (menuItems.length === 0 || categories.length === 0)) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navbar
+          onLocationClick={handleLocationClick}
+          location={RESTAURANT_INFO.location}
+          phoneNumber={RESTAURANT_INFO.phoneNumber}
+        />
+        <main className="pt-16 sm:pt-20 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center px-4">
+            <div className="text-6xl mb-4">🍽️</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Menu Items Available</h2>
+            <p className="text-gray-600 mb-4">
+              {categories.length === 0 
+                ? 'No categories found. Please add categories in admin panel.'
+                : 'No menu items found. Please add menu items in admin panel.'}
+            </p>
+            <a
+              href="/admin/menu"
+              className="inline-block bg-pink-600 hover:bg-pink-700 text-white font-semibold py-2 px-6 rounded-lg transition"
+            >
+              Go to Admin Panel
+            </a>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar
@@ -213,50 +257,64 @@ function HomeContent() {
           onClear={handleClear}
         />
         
-        <section className="bg-gradient-to-b from-white to-gray-50 py-8 md:py-12 px-4 sm:px-6">
-          <div className="max-w-7xl mx-auto">
-            <PopularItemsHeader title="Popular Items" subtitle="Most ordered right now" showEmoji={true} />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {popularItems.map((item) => (
-                <MenuItemCard
-                  key={item.id}
-                  item={item}
-                  onFavorite={handleFavorite}
-                  isFavorited={favorites.includes(item.id)}
-                  onProductClick={handleProductClick}
-                />
-              ))}
+        {popularItems.length > 0 && (
+          <section className="bg-gradient-to-b from-white to-gray-50 py-8 md:py-12 px-4 sm:px-6">
+            <div className="max-w-7xl mx-auto">
+              <PopularItemsHeader title="Popular Items" subtitle="Most ordered right now" showEmoji={true} />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {popularItems.map((item) => (
+                  <MenuItemCard
+                    key={item.id}
+                    item={item}
+                    onFavorite={handleFavorite}
+                    isFavorited={favorites.includes(item.id)}
+                    onProductClick={handleProductClick}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-        {categories.map((category) => (
-          <div key={category.id} id={`category-${category.id}`}>
-            <CategoryHeroSection category={category} categoryDescription={categoryDescriptions} />
-            <div className="px-4 sm:px-6 py-6 sm:py-8">
-              <div className="max-w-7xl mx-auto">
-                <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-8">
-                  Showing{' '}
-                  <span className="font-bold text-pink-600">
-                    {menuItems.filter((item) => item.categoryId === category.id).length}
-                  </span>{' '}
-                  items in{' '}
-                  <span className="font-bold text-pink-600">{category.name}</span>
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {menuItems.filter((item) => item.categoryId === category.id).map((item) => (
-                    <MenuItemCard
-                      key={item.id}
-                      item={item}
-                      onFavorite={handleFavorite}
-                      isFavorited={favorites.includes(item.id)}
-                      onProductClick={handleProductClick}
-                    />
-                  ))}
+          </section>
+        )}
+        {categories.map((category) => {
+          const categoryItems = menuItems.filter((item) => item.categoryId === category.id && item.available);
+          
+          return (
+            <div key={category.id} id={`category-${category.id}`}>
+              <CategoryHeroSection category={category} categoryDescription={categoryDescriptions} />
+              <div className="px-4 sm:px-6 py-6 sm:py-8">
+                <div className="max-w-7xl mx-auto">
+                  <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-8">
+                    Showing{' '}
+                    <span className="font-bold text-pink-600">
+                      {categoryItems.length}
+                    </span>{' '}
+                    items in{' '}
+                    <span className="font-bold text-pink-600">{category.name}</span>
+                  </p>
+                  
+                  {categoryItems.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {categoryItems.map((item) => (
+                        <MenuItemCard
+                          key={item.id}
+                          item={item}
+                          onFavorite={handleFavorite}
+                          isFavorited={favorites.includes(item.id)}
+                          onProductClick={handleProductClick}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <p className="text-gray-500 text-sm">No items available in this category</p>
+                      <p className="text-gray-400 text-xs mt-2">Add items from admin panel</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </main>
       <ProductDetailModal
         isOpen={isModalOpen}

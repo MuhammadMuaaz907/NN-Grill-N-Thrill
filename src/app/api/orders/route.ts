@@ -54,10 +54,24 @@ export async function POST(request: NextRequest) {
     // Generate order ID
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
+    // Transform customerInfo from camelCase to snake_case for database consistency
+    const transformedCustomerInfo = {
+      title: customerInfo.title,
+      full_name: customerInfo.fullName, // Transform fullName -> full_name
+      mobile: customerInfo.mobile,
+      alternate_mobile: customerInfo.alternateMobile,
+      address: customerInfo.address,
+      landmark: customerInfo.landmark,
+      email: customerInfo.email,
+      area: customerInfo.area,
+      instructions: customerInfo.instructions,
+      change_request: customerInfo.changeRequest
+    };
+    
     // Prepare order data for database
     const orderInsertData = {
       order_id: orderId,
-      customer_info: customerInfo,
+      customer_info: transformedCustomerInfo, // Use transformed customer info
       order_items: orderItems,
       totals: {
         subtotal: totals.subtotal,

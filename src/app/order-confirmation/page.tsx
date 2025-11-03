@@ -2,13 +2,48 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle, Clock, MapPin } from 'lucide-react';
-import { Suspense } from 'react';
+import { Clock, MapPin, User } from 'lucide-react';
+import { Suspense, useState, useEffect } from 'react';
+
+interface OrderData {
+  order_id: string;
+  customer_info: {
+    full_name: string;
+    mobile: string;
+    address: string;
+    area: string;
+  };
+  status: string;
+  estimated_delivery: string;
+}
 
 function OrderConfirmationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || 'ORDER-' + Date.now();
+  const [orderData, setOrderData] = useState<OrderData | null>(null);
+
+  // Fetch order details to show customer name
+  useEffect(() => {
+    const fetchOrder = async () => {
+      if (!orderId) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/orders?orderId=${encodeURIComponent(orderId)}`);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setOrderData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching order:', error);
+      }
+    };
+
+    fetchOrder();
+  }, [orderId]);
 
   const handleContinueShopping = () => {
     router.push('/');
@@ -47,9 +82,29 @@ function OrderConfirmationContent() {
               </div>
             </div>
 
+            {/* Customer Information */}
+            {orderData && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <User size={18} className="text-pink-600" />
+                  <span className="text-sm font-semibold text-gray-700">Customer Information</span>
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="font-medium text-gray-900">{orderData.customer_info?.full_name || 'Customer'}</p>
+                  <p className="text-sm text-gray-600">{orderData.customer_info?.mobile || 'N/A'}</p>
+                  <p className="text-xs text-gray-500">
+                    {orderData.customer_info?.address || 'N/A'}
+                    {orderData.customer_info?.area && `, ${orderData.customer_info.area}`}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-2 mb-6">
               <MapPin size={20} className="text-pink-600" />
-              <span className="text-gray-600">Delivering to your address</span>
+              <span className="text-gray-600">
+                {orderData ? `Delivering to ${orderData.customer_info?.full_name || 'your address'}` : 'Delivering to your address'}
+              </span>
             </div>
           </div>
 
