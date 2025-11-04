@@ -57,54 +57,34 @@ export default function AdminPromotions() {
     cloudinary_url: ''
   });
 
-  // Fetch promotions
+  // Fetch promotions from API
   useEffect(() => {
     const fetchPromotions = async () => {
       try {
         setLoading(true);
-        // In real implementation, fetch from API
-        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Mock data for demonstration
-        const mockPromotions: Promotion[] = [
-          {
-            id: '1',
-            title: 'Welcome Offer',
-            description: 'Get 10% off on your first order',
-            discount_percentage: 10,
-            valid_from: new Date().toISOString(),
-            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            title: 'Weekend Special',
-            description: 'Flat Rs. 200 off on orders above Rs. 1000',
-            discount_amount: 200,
-            valid_from: new Date().toISOString(),
-            valid_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '3',
-            title: 'Happy Hour',
-            description: '20% off on all breakfast items',
-            discount_percentage: 20,
-            valid_from: new Date().toISOString(),
-            valid_until: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-            active: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+        // Get admin token from localStorage
+        const token = localStorage.getItem('adminToken');
+        
+        const response = await fetch('/api/admin/promotions', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-        ];
+        });
         
-        setPromotions(mockPromotions);
+        const result = await response.json();
+        
+        if (result.success) {
+          setPromotions(result.data || []);
+        } else {
+          console.error('Error fetching promotions:', result.error);
+          // Fallback to empty array
+          setPromotions([]);
+        }
       } catch (error) {
         console.error('Error fetching promotions:', error);
+        setPromotions([]);
       } finally {
         setLoading(false);
       }
@@ -125,23 +105,86 @@ export default function AdminPromotions() {
   });
 
   const handleAddPromotion = async () => {
+    // Validate form data
+    if (!formData.title || !formData.description || !formData.valid_from || !formData.valid_until) {
+      alert('Please fill all required fields: Title, Description, Valid From, Valid Until');
+      return;
+    }
+
+    // Validate dates
+    const validFrom = new Date(formData.valid_from);
+    const validUntil = new Date(formData.valid_until);
+    
+    if (validFrom >= validUntil) {
+      alert('Valid Until date must be after Valid From date');
+      return;
+    }
+
+    // Validate discount - optional but recommended
+    // Note: Discount is optional, but recommended for better promotion visibility
+
     try {
-      // In real implementation, call API
-      const newPromotion: Promotion = {
-        id: Date.now().toString(),
-        ...formData,
-        discount_percentage: formData.discount_percentage ? parseInt(formData.discount_percentage) : undefined,
-        discount_amount: formData.discount_amount ? parseInt(formData.discount_amount) : undefined,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      const token = localStorage.getItem('adminToken');
       
-      setPromotions([...promotions, newPromotion]);
-      setShowAddModal(false);
-      resetForm();
-    } catch (error) {
-      console.error('Error adding promotion:', error);
-      alert('Error adding promotion');
+      if (!token) {
+        alert('Please login to create promotions');
+        return;
+      }
+
+      const promotionData: any = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        valid_from: validFrom.toISOString(),
+        valid_until: validUntil.toISOString(),
+        active: formData.active
+      };
+
+      // Only add discount fields if they have values
+      if (formData.discount_percentage && formData.discount_percentage.trim()) {
+        promotionData.discount_percentage = parseInt(formData.discount_percentage);
+      }
+
+      if (formData.discount_amount && formData.discount_amount.trim()) {
+        promotionData.discount_amount = parseInt(formData.discount_amount);
+      }
+
+      // Only add image fields if they have values
+      if (formData.image_url?.trim()) {
+        promotionData.image_url = formData.image_url.trim();
+      }
+
+      if (formData.cloudinary_url?.trim()) {
+        promotionData.cloudinary_url = formData.cloudinary_url.trim();
+      }
+
+      console.log('📤 Creating promotion:', promotionData);
+
+      const response = await fetch('/api/admin/promotions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(promotionData)
+      });
+
+      const result = await response.json();
+
+      console.log('📥 Response:', result);
+
+      if (result.success) {
+        setPromotions([result.data, ...promotions]);
+        setShowAddModal(false);
+        resetForm();
+        alert('✅ Promotion created successfully!');
+      } else {
+        const errorMsg = result.details ? `${result.error}\n\nDetails: ${result.details}` : result.error;
+        alert(`❌ Error: ${errorMsg}`);
+        console.error('API Error:', result);
+      }
+    } catch (error: any) {
+      console.error('❌ Error adding promotion:', error);
+      alert(`❌ Error: ${error.message || 'Failed to create promotion. Please check console for details.'}`);
     }
   };
 
@@ -149,20 +192,41 @@ export default function AdminPromotions() {
     if (!editingPromotion) return;
 
     try {
-      // In real implementation, call API
-      const updatedPromotion: Promotion = {
-        ...editingPromotion,
-        ...formData,
+      const token = localStorage.getItem('adminToken');
+      
+      const promotionData = {
+        title: formData.title,
+        description: formData.description,
         discount_percentage: formData.discount_percentage ? parseInt(formData.discount_percentage) : undefined,
         discount_amount: formData.discount_amount ? parseInt(formData.discount_amount) : undefined,
-        updated_at: new Date().toISOString()
+        valid_from: new Date(formData.valid_from).toISOString(),
+        valid_until: new Date(formData.valid_until).toISOString(),
+        active: formData.active,
+        image_url: formData.image_url || undefined,
+        cloudinary_url: formData.cloudinary_url || undefined
       };
-      
-      setPromotions(promotions.map(p => 
-        p.id === editingPromotion.id ? updatedPromotion : p
-      ));
-      setEditingPromotion(null);
-      resetForm();
+
+      const response = await fetch(`/api/admin/promotions/${editingPromotion.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(promotionData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setPromotions(promotions.map(p => 
+          p.id === editingPromotion.id ? result.data : p
+        ));
+        setEditingPromotion(null);
+        resetForm();
+        alert('Promotion updated successfully!');
+      } else {
+        alert(`Error: ${result.error}`);
+      }
     } catch (error) {
       console.error('Error updating promotion:', error);
       alert('Error updating promotion');
@@ -173,7 +237,24 @@ export default function AdminPromotions() {
     if (!confirm('Are you sure you want to delete this promotion?')) return;
 
     try {
-      setPromotions(promotions.filter(p => p.id !== promotionId));
+      const token = localStorage.getItem('adminToken');
+      
+      const response = await fetch(`/api/admin/promotions/${promotionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setPromotions(promotions.filter(p => p.id !== promotionId));
+        alert('Promotion deleted successfully!');
+      } else {
+        alert(`Error: ${result.error}`);
+      }
     } catch (error) {
       console.error('Error deleting promotion:', error);
       alert('Error deleting promotion');
@@ -182,10 +263,26 @@ export default function AdminPromotions() {
 
   const handleToggleStatus = async (promotion: Promotion) => {
     try {
-      const updatedPromotion = { ...promotion, active: !promotion.active, updated_at: new Date().toISOString() };
-      setPromotions(promotions.map(p => 
-        p.id === promotion.id ? updatedPromotion : p
-      ));
+      const token = localStorage.getItem('adminToken');
+      
+      const response = await fetch(`/api/admin/promotions/${promotion.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ active: !promotion.active })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setPromotions(promotions.map(p => 
+          p.id === promotion.id ? result.data : p
+        ));
+      } else {
+        alert(`Error: ${result.error}`);
+      }
     } catch (error) {
       console.error('Error updating promotion status:', error);
       alert('Error updating promotion status');

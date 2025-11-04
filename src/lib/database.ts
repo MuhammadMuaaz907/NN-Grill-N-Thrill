@@ -424,6 +424,128 @@ export const adminService = {
   }
 }
 
+// Promotion Operations
+export const promotionService = {
+  // Get all promotions
+  async getAllPromotions(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('promotions')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Get active promotions (currently valid and active)
+  async getActivePromotions(): Promise<any[]> {
+    const now = new Date().toISOString()
+    const { data, error } = await supabase
+      .from('promotions')
+      .select('*')
+      .eq('active', true)
+      .lte('valid_from', now)  // valid_from <= now (promotion has started)
+      .gte('valid_until', now)  // valid_until >= now (promotion hasn't expired)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  },
+
+  // Create promotion
+  async createPromotion(promotionData: any): Promise<any> {
+    console.log('📝 Creating promotion in database:', promotionData);
+    
+    // Clean up data - remove null/undefined values and convert to proper format
+    const cleanData: any = {
+      title: promotionData.title,
+      description: promotionData.description,
+      valid_from: promotionData.valid_from,
+      valid_until: promotionData.valid_until,
+      active: Boolean(promotionData.active ?? true)
+    };
+
+    // Add optional fields only if they have values (don't send null/undefined to database)
+    if (promotionData.discount_percentage !== null && 
+        promotionData.discount_percentage !== undefined && 
+        promotionData.discount_percentage !== '' &&
+        !isNaN(parseInt(String(promotionData.discount_percentage)))) {
+      cleanData.discount_percentage = parseInt(String(promotionData.discount_percentage));
+    }
+    
+    if (promotionData.discount_amount !== null && 
+        promotionData.discount_amount !== undefined && 
+        promotionData.discount_amount !== '' &&
+        !isNaN(parseInt(String(promotionData.discount_amount)))) {
+      cleanData.discount_amount = parseInt(String(promotionData.discount_amount));
+    }
+
+    if (promotionData.image_url) {
+      cleanData.image_url = promotionData.image_url;
+    }
+
+    if (promotionData.cloudinary_url) {
+      cleanData.cloudinary_url = promotionData.cloudinary_url;
+    }
+
+    console.log('📝 Clean promotion data:', cleanData);
+
+    const { data, error } = await supabase
+      .from('promotions')
+      .insert(cleanData)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('❌ Supabase error:', error);
+      throw error
+    }
+    
+    console.log('✅ Promotion created:', data);
+    return data
+  },
+
+  // Update promotion
+  async updatePromotion(id: string, promotionData: any): Promise<any> {
+    const updateData = {
+      ...promotionData,
+      updated_at: new Date().toISOString()
+    }
+
+    const { data, error } = await supabase
+      .from('promotions')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  // Delete promotion
+  async deletePromotion(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('promotions')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  // Get promotion by ID
+  async getPromotionById(id: string): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('promotions')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) return null
+    return data
+  }
+}
+
 // File Upload Operations
 export const fileService = {
   // Upload image to Supabase Storage

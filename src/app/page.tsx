@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
+import { NavbarWrapper } from '@/components/NavbarWrapper';
 import { HeroSection } from '@/components/HeroSection';
 import { CategoryMenu } from '@/components/CategoryMenu';
 import { PopularItemsHeader } from '@/components/PopularItemsHeader';
@@ -11,10 +12,11 @@ import { CategoryHeroSection } from '@/components/CategoryHeroSection';
 import { CartDrawer } from '@/components/CartDrawer';
 import { ProductDetailModal } from '@/components/ProductDetailModal';
 import { MenuItemCard } from '@/components/MenuItemCard';
+import { PromotionPopup } from '@/components/PromotionPopup';
 import { useCart } from '@/context/CartContext';
 import { RESTAURANT_INFO, CAROUSEL_ITEMS } from '@/lib/data';
 import { Category, MenuItem } from '@/types';
-import { MenuSearch } from '@/components/MenuSearch'; // Import MenuSearch
+import { MenuSearch } from '@/components/MenuSearch';
 
 function HomeContent() {
   const router = useRouter();
@@ -37,6 +39,15 @@ function HomeContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularItems, setPopularItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [promotions, setPromotions] = useState<Array<{
+    id: string;
+    title: string;
+    description: string;
+    discount_percentage?: number;
+    discount_amount?: number;
+    valid_until: string;
+  }>>([]);
+  const [showPromotionPopup, setShowPromotionPopup] = useState(false);
 
   // Fetch menu data from API
   useEffect(() => {
@@ -77,6 +88,60 @@ function HomeContent() {
 
     fetchMenuData();
   }, []);
+
+  // Fetch active promotions
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        const response = await fetch('/api/promotions?active=true');
+        const result = await response.json();
+        
+        console.log('📊 Promotions API Response:', result);
+        
+        if (result.success && result.data && result.data.length > 0) {
+          setPromotions(result.data);
+          
+          // Check if user has dismissed popup today (simplified logic)
+          const today = new Date().toDateString();
+          const lastDismissDate = localStorage.getItem('lastPromotionDismissDate');
+          
+          // Show popup if user hasn't dismissed today
+          if (lastDismissDate !== today) {
+            console.log('✅ Showing promotion popup - not dismissed today');
+            // Delay popup by 1.5 seconds for better UX
+            setTimeout(() => {
+              setShowPromotionPopup(true);
+              console.log('🎉 Popup state set to true');
+            }, 1500);
+          } else {
+            console.log('⏭️ Popup already dismissed today');
+          }
+        } else {
+          console.log('⚠️ No active promotions found');
+        }
+      } catch (error) {
+        console.error('❌ Error fetching promotions:', error);
+      }
+    };
+
+    fetchPromotions();
+  }, []);
+
+  const handleClosePromotionPopup = () => {
+    console.log('🔒 Closing promotion popup');
+    setShowPromotionPopup(false);
+    // Save dismiss date to localStorage (user can see again tomorrow)
+    localStorage.setItem('lastPromotionDismissDate', new Date().toDateString());
+    console.log('✅ Popup dismissed for today');
+  };
+
+  const handleShopNow = () => {
+    // Scroll to menu or open cart
+    const categorySection = document.getElementById('category-menu');
+    if (categorySection) {
+      categorySection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   // Handle location click
   const handleLocationClick = () => {
@@ -237,12 +302,14 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar
+      {/* Navbar */}
+      <NavbarWrapper
+        hasBanner={false}
         onLocationClick={handleLocationClick}
         location={RESTAURANT_INFO.location}
         phoneNumber={RESTAURANT_INFO.phoneNumber}
       />
-      <main className="pt-16 sm:pt-20">
+      <main className="pt-20 sm:pt-24">
         <HeroSection items={CAROUSEL_ITEMS} />
         <CategoryMenu
           categories={categories}
@@ -250,12 +317,14 @@ function HomeContent() {
           activeCategory={hoveredCategory}
         />
 
-        {/* Add MenuSearch component here */}
-        <MenuSearch
-          placeholder="Search for spicy honey glaze"
-          onSearch={handleSearch}
-          onClear={handleClear}
-        />
+        {/* MenuSearch component */}
+        <div id="category-menu" className="px-4 sm:px-6 py-4 sm:py-6">
+          <MenuSearch
+            placeholder="Search for spicy honey glaze"
+            onSearch={handleSearch}
+            onClear={handleClear}
+          />
+        </div>
         
         {popularItems.length > 0 && (
           <section className="bg-gradient-to-b from-white to-gray-50 py-8 md:py-12 px-4 sm:px-6">
@@ -337,6 +406,15 @@ function HomeContent() {
       >
         ← Back
       </button>
+
+      {/* Promotion Popup */}
+      {showPromotionPopup && promotions.length > 0 && (
+        <PromotionPopup
+          promotions={promotions}
+          onClose={handleClosePromotionPopup}
+          onShopNow={handleShopNow}
+        />
+      )}
     </div>
   );
 }
