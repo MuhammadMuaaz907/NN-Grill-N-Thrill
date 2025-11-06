@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Search, ArrowUp } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { NavbarWrapper } from '@/components/NavbarWrapper';
 import { HeroSection } from '@/components/HeroSection';
@@ -34,6 +35,8 @@ function HomeContent() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showSearchButton, setShowSearchButton] = useState(false);
+  const [showUpArrowButton, setShowUpArrowButton] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularItems, setPopularItems] = useState<MenuItem[]>([]);
@@ -193,6 +196,63 @@ function HomeContent() {
     // Future: Reset search state
   };
 
+  // Check if search bar and hero section are scrolled past
+  useEffect(() => {
+    const handleScroll = () => {
+      // Check search bar
+      const searchBarElement = document.getElementById('category-menu');
+      if (searchBarElement) {
+        const rect = searchBarElement.getBoundingClientRect();
+        // Show button if search bar bottom is above viewport (scrolled past)
+        setShowSearchButton(rect.bottom < 50);
+      }
+
+      // Check hero section - find hero section by checking scroll position
+      const heroSection = document.querySelector('section[class*="pt-16"]');
+      if (heroSection) {
+        const rect = heroSection.getBoundingClientRect();
+        // Show button if hero section bottom is above viewport (scrolled past)
+        setShowUpArrowButton(rect.bottom < 100);
+      } else {
+        // Fallback: if hero section not found, show button when scrolled past 300px
+        setShowUpArrowButton(window.scrollY > 300);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Check on mount
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Scroll to search bar
+  const handleScrollToSearch = () => {
+    const searchBarElement = document.getElementById('category-menu');
+    if (searchBarElement) {
+      // Get navbar height for offset
+      const navbarWrapper = document.querySelector('div[class*="fixed"][class*="z-50"]') as HTMLElement;
+      const navbarHeight = navbarWrapper ? navbarWrapper.getBoundingClientRect().height : 80;
+      
+      const elementRect = searchBarElement.getBoundingClientRect();
+      const elementTop = elementRect.top + window.pageYOffset;
+      const scrollPosition = elementTop - navbarHeight - 20; // 20px padding
+      
+      window.scrollTo({
+        top: Math.max(0, scrollPosition),
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Scroll to top
+  const handleScrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   // Get recommended items
   const recommendedItems = popularItems.filter(
     (item) => !items.find((cartItem) => cartItem.id === item.id)
@@ -308,9 +368,10 @@ function HomeContent() {
         {/* MenuSearch component */}
         <div id="category-menu" className="px-4 sm:px-6 py-4 sm:py-6">
           <MenuSearch
-            placeholder="Search for spicy honey glaze"
+            placeholder="Search for"
             onSearch={handleSearch}
             onClear={handleClear}
+            categories={categories}
           />
         </div>
         
@@ -396,6 +457,38 @@ function HomeContent() {
           onClose={handleClosePromotionPopup}
           onShopNow={handleShopNow}
         />
+      )}
+
+      {/* Floating Search Button - Shows when scrolled past search bar */}
+      {showSearchButton && (
+        <button
+          onClick={handleScrollToSearch}
+          className="fixed left-4 sm:left-5 bottom-12 sm:bottom-14 bg-pink-600 hover:bg-pink-700 text-white p-3 sm:p-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 z-40 hover:scale-110 active:scale-95 flex items-center justify-center"
+          style={{
+            opacity: 0,
+            animation: 'fadeIn 1s ease-in-out 0.3s forwards'
+          }}
+          aria-label="Scroll to search"
+          title="Scroll to search"
+        >
+          <Search size={20} strokeWidth={3} className="sm:w-5 sm:h-5" />
+        </button>
+      )}
+
+      {/* Floating Up Arrow Button - Shows when scrolled past hero section */}
+      {showUpArrowButton && (
+        <button
+          onClick={handleScrollToTop}
+          className="fixed right-4 sm:right-5 bottom-12 sm:bottom-14 bg-pink-600 hover:bg-pink-700 text-white p-2 sm:p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-40 hover:scale-110 active:scale-95 flex items-center justify-center"
+          style={{
+            opacity: 0,
+            animation: 'fadeIn 1s ease-in-out 0.3s forwards'
+          }}
+          aria-label="Scroll to top"
+          title="Scroll to top"
+        >
+          <ArrowUp size={18} strokeWidth={3.5} className="sm:w-5 sm:h-5" />
+        </button>
       )}
     </div>
   );

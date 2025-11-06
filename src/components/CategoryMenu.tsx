@@ -258,7 +258,7 @@ export const CategoryMenu: React.FC<CategoryMenuProps> = ({
             }
           }}
         >
-          <div className="flex gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 w-max md:w-full md:justify-center">
+          <div className="flex gap-4 md:gap-5 px-4 md:px-6 py-3 md:py-4 w-max md:w-full md:justify-center">
             {categories.map((category) => (
               <button
                 key={category.id}
@@ -278,7 +278,7 @@ export const CategoryMenu: React.FC<CategoryMenuProps> = ({
                     }
                   }, 100);
                 }}
-                className={`whitespace-nowrap font-bold text-xs md:text-sm px-3 md:px-4 py-2 rounded-full transition-all duration-200 ${
+                className={`whitespace-nowrap font-bold text-sm md:text-base px-5 md:px-6 py-2.5 md:py-3 rounded-full transition-all duration-200 ${
                   scrollActiveCategory === category.id
                     ? 'bg-pink-600 text-white shadow-md scale-105'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
