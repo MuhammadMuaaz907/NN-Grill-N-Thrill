@@ -9,8 +9,6 @@ interface CategoryItemsSectionProps {
   category: Category | null;
   items: MenuItem[];
   onAddToCart: (item: MenuItem) => void;
-  onFavorite?: (itemId: string) => void;
-  favorites?: string[];
   isLoading?: boolean;
 }
 
@@ -18,8 +16,6 @@ export const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({
   category,
   items,
   onAddToCart,
-  onFavorite,
-  favorites = [],
   isLoading = false
 }) => {
   // Filter items by category
@@ -59,7 +55,7 @@ export const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({
 
   return (
     <section className="px-6 py-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <p className="text-gray-600 text-sm mb-8">
           Showing <span className="font-bold text-pink-600">{categoryItems.length}</span> items in{' '}
           <span className="font-bold text-pink-600">{category.name}</span>
@@ -70,8 +66,6 @@ export const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({
             <MenuItemCard
               key={item.id}
               item={item}
-              onFavorite={onFavorite}
-              isFavorited={favorites.includes(item.id)}
             />
           ))}
         </div>

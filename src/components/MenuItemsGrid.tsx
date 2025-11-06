@@ -8,8 +8,6 @@ import { MenuItem } from '@/types';
 interface MenuItemsGridProps {
   items: MenuItem[];
   onAddToCart?: (item: MenuItem) => void;
-  onFavorite?: (itemId: string) => void;
-  favorites?: string[];
   isLoading?: boolean;
   emptyMessage?: string;
 }
@@ -17,8 +15,6 @@ interface MenuItemsGridProps {
 export const MenuItemsGrid: React.FC<MenuItemsGridProps> = ({
   items,
   onAddToCart,
-  onFavorite,
-  favorites = [],
   isLoading = false,
   emptyMessage = 'No items found. Try a different search.'
 }) => {
@@ -54,8 +50,6 @@ export const MenuItemsGrid: React.FC<MenuItemsGridProps> = ({
             key={item.id}
             item={item}
             onAddToCart={onAddToCart}
-            onFavorite={onFavorite}
-            isFavorited={favorites.includes(item.id)}
           />
         ))}
       </div>
