@@ -85,10 +85,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - Transparent */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
-          isOpen ? "bg-opacity-50" : "bg-opacity-0 pointer-events-none"
+        className={`fixed inset-0 bg-white/60 transition-opacity duration-300 z-40 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
       />
@@ -100,78 +100,62 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         }`}
       >
         <div
-          className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl"
+          className="bg-white rounded-2xl max-w-5xl w-full max-h-[85vh] flex flex-col md:flex-row shadow-2xl overflow-hidden relative"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header with Image */}
-          <div className="relative">
-            {/* Product Image */}
-            <div className="w-full h-64 md:h-80 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
-              {product.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center space-y-2">
-                  <span className="text-7xl">🍽️</span>
-                  <div className="text-center">
-                    <p className="text-pink-600 font-script text-2xl italic">
-                      florentine
-                    </p>
-                    <p className="text-gray-500 text-xs">café & eat</p>
-                  </div>
+          {/* Close Button - Top Right of Modal */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 bg-white hover:bg-gray-100 text-gray-800 p-2.5 rounded-full shadow-lg transition-all hover:scale-110 z-20 border border-gray-200"
+            aria-label="Close modal"
+            title="Close"
+          >
+            <X size={20} />
+          </button>
+
+          {/* Left Side - Image */}
+          <div className="w-full md:w-1/2 h-64 md:h-auto bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+            {product.image ? (
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center space-y-2">
+                <span className="text-7xl">🍽️</span>
+                <div className="text-center">
+                  <p className="text-pink-600 font-script text-2xl italic">
+                    florentine
+                  </p>
+                  <p className="text-gray-500 text-xs">café & eat</p>
                 </div>
-              )}
-            </div>
-
-            {/* Top Action Buttons */}
-            <div className="absolute top-4 right-4 flex gap-3">
-              {/* Share Button */}
-              <button
-                onClick={handleShare}
-                className="bg-pink-600 hover:bg-pink-700 text-white p-3 rounded-full shadow-md transition-all hover:scale-110"
-                aria-label="Share product"
-                title="Share"
-              >
-                <Share2 size={20} />
-              </button>
-
-              {/* Close Button */}
-              <button
-                onClick={onClose}
-                className="bg-pink-600 hover:bg-pink-700 text-white p-3 rounded-full shadow-md transition-all hover:scale-110"
-                aria-label="Close modal"
-                title="Close"
-              >
-                <X size={20} />
-              </button>
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Content */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-6">
+          {/* Right Side - Content */}
+          <div className="w-full md:w-1/2 flex flex-col p-6 md:p-8">
             {/* Product Name and Price */}
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
+            <div className="mb-4">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                 {product.name}
               </h1>
-              <p className="text-2xl font-bold text-pink-600">
+              <p className="text-xl md:text-2xl font-bold text-pink-600">
                 Rs. {product.price}
               </p>
             </div>
 
             {/* Description */}
-            <div>
-              <p className="text-gray-600 text-base leading-relaxed">
+            <div className="mb-6">
+              <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                 {product.description}
               </p>
             </div>
 
             {/* Special Instructions */}
-            <div>
-              <label className="block text-lg font-semibold text-gray-900 mb-3">
+            <div className="mb-6">
+              <label className="block text-base font-semibold text-gray-900 mb-2">
                 Special Instructions
               </label>
               <textarea
@@ -180,25 +164,25 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   setSpecialInstructions(e.target.value.slice(0, 500))
                 }
                 placeholder="Please enter instructions about this item"
-                className="w-full h-28 p-4 border-2 border-gray-200 rounded-lg focus:border-pink-600 focus:outline-none resize-none placeholder-gray-400 text-gray-700"
+                className="w-full h-24 p-3 border-2 border-gray-200 rounded-lg focus:border-pink-600 focus:outline-none resize-none placeholder-gray-400 text-gray-700 text-sm"
               />
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 mt-1">
                 {specialInstructions.length}/500 characters
               </p>
             </div>
 
             {/* Quantity and Add to Cart */}
-            <div className="space-y-4">
+            <div className="mt-auto space-y-4">
               {/* Quantity Controls */}
               <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center gap-3 bg-white border-2 border-gray-300 rounded-lg px-2 py-1">
+                <div className="flex items-center gap-3 bg-white border-2 border-gray-300 rounded-lg px-3 py-2">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="text-gray-600 hover:text-pink-600 transition p-1"
                     aria-label="Decrease quantity"
                     title="Decrease"
                   >
-                    <Minus size={20} />
+                    <Minus size={18} />
                   </button>
                   <span className="text-lg font-bold text-gray-900 w-8 text-center">
                     {quantity}
@@ -209,28 +193,41 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     aria-label="Increase quantity"
                     title="Increase"
                   >
-                    <Plus size={20} />
+                    <Plus size={18} />
                   </button>
                 </div>
 
                 {/* Price Display */}
                 <div className="flex-1 text-right">
                   <p className="text-gray-600 text-sm">Total</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">
                     Rs. {totalPrice}
                   </p>
                 </div>
               </div>
 
-              {/* Add to Cart Button */}
-              <button
-                onClick={handleAddToCart}
-                className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold text-lg py-4 rounded-lg flex items-center justify-center gap-3 transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
-              >
-                Rs. {totalPrice}
-                <span className="text-2xl">Add to Cart</span>
-                <X size={24} className="rotate-45" />
-              </button>
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                {/* Share Button */}
+                <button
+                  onClick={handleShare}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-200"
+                  aria-label="Share product"
+                  title="Share"
+                >
+                  <Share2 size={18} />
+                  <span className="hidden sm:inline">Share</span>
+                </button>
+
+                {/* Add to Cart Button */}
+                <button
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
+                >
+                  <Plus size={18} />
+                  <span>Add to Cart</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
