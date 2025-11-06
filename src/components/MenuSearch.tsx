@@ -29,7 +29,7 @@ export const MenuSearch: React.FC<MenuSearchProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="my-6 md:my-8 px-4 sm:px-6">
-      <div className="relative max-w-2xl mx-auto">
+      <div className="relative max-w-6xl mx-auto">
         <input
           type="text"
           value={searchQuery}

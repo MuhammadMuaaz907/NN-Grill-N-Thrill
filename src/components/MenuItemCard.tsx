@@ -2,22 +2,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, Plus, Check } from 'lucide-react';
+import { Plus, Check } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { MenuItem } from '@/types';
 
 interface MenuItemCardProps {
   item: MenuItem;
-  onFavorite?: (itemId: string) => void;
-  isFavorited?: boolean;
   onProductClick?: (product: MenuItem) => void;
   onAddToCart?: (item: MenuItem) => void; // Keep for backward compatibility
 }
 
 export const MenuItemCard: React.FC<MenuItemCardProps> = ({
   item,
-  onFavorite,
-  isFavorited = false,
   onProductClick,
   onAddToCart
 }) => {
@@ -29,12 +25,6 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
   // Handle card click - opens modal
   const handleCardClick = () => {
     onProductClick?.(item);
-  };
-
-  // Handle favorite click - prevent modal from opening
-  const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onFavorite?.(item.id);
   };
 
   // Handle add to cart click - add item and show confirmation
@@ -83,22 +73,6 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
             <span className="text-4xl sm:text-5xl md:text-6xl">🍽️</span>
           </div>
         )}
-
-        {/* Favorite Button - Stops Propagation */}
-        <button
-          onClick={handleFavoriteClick}
-          className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white rounded-full p-1.5 sm:p-2 shadow-md hover:shadow-lg transition-all duration-200 z-10 hover:scale-110"
-          aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          <Heart
-            size={18}
-            className={`sm:w-5 sm:h-5 transition-colors ${
-              isFavorited
-                ? 'fill-pink-600 text-pink-600'
-                : 'text-gray-400 hover:text-pink-600'
-            }`}
-          />
-        </button>
 
         {/* Price Badge - Fully Clickable */}
         <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 bg-white rounded-full px-3 py-1.5 sm:px-4 sm:py-2 shadow-md font-bold text-gray-900 pointer-events-none text-sm sm:text-base">

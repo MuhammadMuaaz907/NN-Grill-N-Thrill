@@ -19,7 +19,6 @@ export const MenuPage: React.FC<MenuPageProps> = ({
   onAddToCart
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [favorites, setFavorites] = useState<string[]>([]);
 
   // Filter items based on search query
   const filteredItems = useMemo(() => {
@@ -43,14 +42,6 @@ export const MenuPage: React.FC<MenuPageProps> = ({
     setSearchQuery('');
   };
 
-  const handleFavorite = (itemId: string) => {
-    setFavorites((prev) =>
-      prev.includes(itemId)
-        ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
-
   return (
     <section className="min-h-screen bg-white py-8">
       {/* Search Section */}
@@ -65,8 +56,6 @@ export const MenuPage: React.FC<MenuPageProps> = ({
           <PopularItemsHeader />
           <MenuItemsGrid
             items={popularItems}
-            onFavorite={handleFavorite}
-            favorites={favorites}
           />
         </>
       )}
@@ -86,8 +75,6 @@ export const MenuPage: React.FC<MenuPageProps> = ({
 
       <MenuItemsGrid
         items={filteredItems}
-        onFavorite={handleFavorite}
-        favorites={favorites}
         emptyMessage={
           searchQuery
             ? 'No items match your search. Try different keywords.'

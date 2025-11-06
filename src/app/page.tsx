@@ -32,7 +32,6 @@ function HomeContent() {
   } = useCart();
 
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -149,21 +148,10 @@ function HomeContent() {
   };
 
   // Handle category selection
+  // Note: Actual scrolling is handled in CategoryMenu component with proper offset
   const handleCategorySelect = (category: Category) => {
     setHoveredCategory(category.id);
-    setTimeout(() => {
-      const categorySection = document.getElementById(`category-${category.id}`);
-      if (categorySection) {
-        categorySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
-  };
-
-  // Handle favorite toggle
-  const handleFavorite = (itemId: string) => {
-    setFavorites((prev) =>
-      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
-    );
+    // Scroll logic is handled in CategoryMenu.handleCategoryClick to account for fixed navbar
   };
 
   // Handle product click to open modal
@@ -328,15 +316,13 @@ function HomeContent() {
         
         {popularItems.length > 0 && (
           <section className="bg-gradient-to-b from-white to-gray-50 py-8 md:py-12 px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-6xl mx-auto">
               <PopularItemsHeader title="Popular Items" subtitle="Most ordered right now" showEmoji={true} />
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {popularItems.map((item) => (
                   <MenuItemCard
                     key={item.id}
                     item={item}
-                    onFavorite={handleFavorite}
-                    isFavorited={favorites.includes(item.id)}
                     onProductClick={handleProductClick}
                   />
                 ))}
@@ -351,7 +337,7 @@ function HomeContent() {
             <div key={category.id} id={`category-${category.id}`}>
               <CategoryHeroSection category={category} categoryDescription={categoryDescriptions} />
               <div className="px-4 sm:px-6 py-6 sm:py-8">
-                <div className="max-w-7xl mx-auto">
+                <div className="max-w-6xl mx-auto">
                   <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-8">
                     Showing{' '}
                     <span className="font-bold text-pink-600">
@@ -367,8 +353,6 @@ function HomeContent() {
                         <MenuItemCard
                           key={item.id}
                           item={item}
-                          onFavorite={handleFavorite}
-                          isFavorited={favorites.includes(item.id)}
                           onProductClick={handleProductClick}
                         />
                       ))}
@@ -389,8 +373,6 @@ function HomeContent() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         product={selectedProduct}
-        isFavorited={selectedProduct ? favorites.includes(selectedProduct.id) : false}
-        onFavorite={handleFavorite}
       />
       <CartDrawer
         isOpen={isOpen}

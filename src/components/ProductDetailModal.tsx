@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Share2, Heart, Plus, Minus } from "lucide-react";
+import { X, Share2, Plus, Minus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { MenuItem } from "@/types";
 
@@ -10,16 +10,12 @@ interface ProductDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: MenuItem | null;
-  isFavorited?: boolean;
-  onFavorite?: (itemId: string) => void;
 }
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   isOpen,
   onClose,
   product,
-  isFavorited = false,
-  onFavorite,
 }) => {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -236,24 +232,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 <X size={24} className="rotate-45" />
               </button>
             </div>
-
-            {/* Favorite Button */}
-            {onFavorite && (
-              <button
-                onClick={() => onFavorite(product.id)}
-                className={`w-full font-semibold text-lg py-3 rounded-lg flex items-center justify-center gap-2 transition-all ${
-                  isFavorited
-                    ? "bg-red-100 text-red-600 hover:bg-red-200"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                <Heart
-                  size={20}
-                  className={isFavorited ? "fill-current" : ""}
-                />
-                {isFavorited ? "Remove from Favorites" : "Add to Favorites"}
-              </button>
-            )}
           </div>
         </div>
       </div>
