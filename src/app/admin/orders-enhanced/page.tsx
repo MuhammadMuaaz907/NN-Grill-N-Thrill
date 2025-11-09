@@ -17,7 +17,9 @@ import {
   MapPin,
   Phone,
   CheckCircle2,
-  X
+  X,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 
 interface Order {
@@ -302,25 +304,19 @@ export default function AdminOrdersEnhanced() {
             newlyFoundOrderIds.includes(String(o.id))
           );
           
-          const totalAmount = newOrders.reduce((sum: number, o: Order) => {
-            return sum + (o.totals?.grand_total || 0);
-          }, 0);
-          
-          // console.log(`Total amount: Rs. ${totalAmount.toLocaleString()}`);
-          
-          // Show toast notification ONLY for truly new orders
-          const toastMessage = `🎉 ${newOrders.length} new order${newOrders.length > 1 ? 's' : ''} received! Total: Rs. ${totalAmount.toLocaleString()}`;
-          console.log('📢 Toast fired');
-          if (!notifiedThisFetchRef.current) {
-          showToast(toastMessage);
-            notifiedThisFetchRef.current = true;
-          }
-          
+          // Show toast notifications for each new order
+          newOrders.forEach((order) => {
+            const customer = order.customer_info?.full_name || 'Unknown Customer';
+            const total = order.totals?.grand_total || 0;
+            showToast(`🎉 New order from ${customer} — Rs. ${Number(total).toLocaleString()}`);
+          });
+
           // Play sound ONLY for truly new orders
           console.log('🔊 Sound fired');
           if (soundEnabled) {
-          playNotificationSound();
+            await playNotificationSound();
           }
+          notifiedThisFetchRef.current = true;
           
           // Update state with new orders
           setNewOrderIds(prev => {
@@ -590,15 +586,14 @@ export default function AdminOrdersEnhanced() {
             {/* Sound toggle */}
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                soundEnabled 
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                  : 'bg-gray-100 text-gray-600 border border-gray-200'
+              className={`p-2 rounded-lg border transition-colors ${
+                soundEnabled
+                  ? 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'
+                  : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
               }`}
-              title={soundEnabled ? 'Sound enabled' : 'Sound disabled'}
+              title={soundEnabled ? 'Mute notifications' : 'Enable sound'}
             >
-              {soundEnabled ? <Bell size={16} /> : <BellOff size={16} />}
-              {soundEnabled ? 'Sound ON' : 'Sound OFF'}
+              {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
             </button>
             
             {/* Manual refresh */}
@@ -676,7 +671,7 @@ export default function AdminOrdersEnhanced() {
         </div>
 
         {/* Orders List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden max-h-[70vh] flex flex-col">
           <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
             <div className="flex items-center justify-between">
               <div>
@@ -697,7 +692,7 @@ export default function AdminOrdersEnhanced() {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 overflow-y-auto">
             {filteredOrders.map((order) => {
               // Convert to string for consistent comparison
               const orderIdStr = String(order.id);
@@ -815,8 +810,8 @@ export default function AdminOrdersEnhanced() {
 
         {/* Order Detail Modal */}
         {selectedOrder && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-900">
@@ -831,76 +826,82 @@ export default function AdminOrdersEnhanced() {
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
-                {/* Customer Info */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Customer Information</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <p><strong>Name:</strong> {selectedOrder.customer_info?.full_name || 'Unknown Customer'}</p>
-                    <p><strong>Phone:</strong> {selectedOrder.customer_info?.mobile || 'N/A'}</p>
-                    <p><strong>Email:</strong> {selectedOrder.customer_info?.email || 'N/A'}</p>
-                    <p><strong>Address:</strong> {selectedOrder.customer_info?.address || 'N/A'}</p>
-                    <p><strong>Area:</strong> {selectedOrder.customer_info?.area || 'N/A'}</p>
-                  </div>
-                </div>
-
-                {/* Order Items */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Order Items</h3>
-                  <div className="space-y-3">
-                    {(selectedOrder.order_items || []).map((item, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                        <div>
-                          <p className="font-medium text-gray-900">{item?.name || 'Unknown Item'}</p>
-                          <p className="text-sm text-gray-600">Quantity: {item?.quantity || 0}</p>
-                        </div>
-                        <p className="font-semibold text-gray-900">
-                          Rs. {((item?.price || 0) * (item?.quantity || 0)).toLocaleString()}
-                        </p>
+              <div className="p-6">
+                <div className="flex flex-col lg:flex-row gap-6 max-h-[70vh] overflow-y-auto pr-1">
+                  <div className="lg:w-1/2 space-y-6">
+                    {/* Customer Info */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Customer Information</h3>
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                        <p><strong>Name:</strong> {selectedOrder.customer_info?.full_name || 'Unknown Customer'}</p>
+                        <p><strong>Phone:</strong> {selectedOrder.customer_info?.mobile || 'N/A'}</p>
+                        <p><strong>Email:</strong> {selectedOrder.customer_info?.email || 'N/A'}</p>
+                        <p><strong>Address:</strong> {selectedOrder.customer_info?.address || 'N/A'}</p>
+                        <p><strong>Area:</strong> {selectedOrder.customer_info?.area || 'N/A'}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Order Summary */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Order Summary</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between">
-                      <span>Subtotal:</span>
-                      <span>Rs. {(selectedOrder.totals?.subtotal || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tax:</span>
-                      <span>Rs. {(selectedOrder.totals?.tax || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Delivery Fee:</span>
-                      <span>Rs. {(selectedOrder.totals?.delivery_fee || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg border-t border-gray-300 pt-2">
-                      <span>Total:</span>
-                      <span>Rs. {(selectedOrder.totals?.grand_total || 0).toLocaleString()}</span>
+                    {/* Status Update */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Update Status</h3>
+                      <div className="flex gap-2 flex-wrap">
+                        {getStatusOptions(selectedOrder.status).map((status) => (
+                          <button
+                            key={status}
+                            onClick={() => {
+                              updateOrderStatus(selectedOrder.id, status as Order['status']);
+                              setSelectedOrder(null);
+                            }}
+                            className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg transition-colors"
+                          >
+                            Mark as {status.replace('_', ' ')}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Status Update */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Update Status</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    {getStatusOptions(selectedOrder.status).map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => {
-                          updateOrderStatus(selectedOrder.id, status as Order['status']);
-                          setSelectedOrder(null);
-                        }}
-                        className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg transition-colors"
-                      >
-                        Mark as {status.replace('_', ' ')}
-                      </button>
-                    ))}
+                  <div className="lg:w-1/2 space-y-6">
+                    {/* Order Items */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Order Items</h3>
+                      <div className="space-y-3">
+                        {(selectedOrder.order_items || []).map((item, index) => (
+                          <div key={index} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                            <div>
+                              <p className="font-medium text-gray-900">{item?.name || 'Unknown Item'}</p>
+                              <p className="text-sm text-gray-600">Quantity: {item?.quantity || 0}</p>
+                            </div>
+                            <p className="font-semibold text-gray-900">
+                              Rs. {((item?.price || 0) * (item?.quantity || 0)).toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Order Summary */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Order Summary</h3>
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                        <div className="flex justify-between">
+                          <span>Subtotal:</span>
+                          <span>Rs. {(selectedOrder.totals?.subtotal || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tax:</span>
+                          <span>Rs. {(selectedOrder.totals?.tax || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Delivery Fee:</span>
+                          <span>Rs. {(selectedOrder.totals?.delivery_fee || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-lg border-t border-gray-300 pt-2">
+                          <span>Total:</span>
+                          <span>Rs. {(selectedOrder.totals?.grand_total || 0).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

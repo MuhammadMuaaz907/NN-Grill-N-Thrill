@@ -56,6 +56,7 @@ export default function AdminPromotions() {
     image_url: '',
     cloudinary_url: ''
   });
+  const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
 
   // Fetch promotions from API
   useEffect(() => {
@@ -233,13 +234,13 @@ export default function AdminPromotions() {
     }
   };
 
-  const handleDeletePromotion = async (promotionId: string) => {
-    if (!confirm('Are you sure you want to delete this promotion?')) return;
-
+  const handleDeletePromotion = async () => {
+    if (!deleteTarget) return;
+    
     try {
       const token = localStorage.getItem('adminToken');
       
-      const response = await fetch(`/api/admin/promotions/${promotionId}`, {
+      const response = await fetch(`/api/admin/promotions/${deleteTarget.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -250,14 +251,16 @@ export default function AdminPromotions() {
       const result = await response.json();
 
       if (result.success) {
-        setPromotions(promotions.filter(p => p.id !== promotionId));
-        alert('Promotion deleted successfully!');
+        setPromotions(prev => prev.filter(p => p.id !== deleteTarget.id));
+        setDeleteTarget(null);
       } else {
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error('Error deleting promotion:', error);
       alert('Error deleting promotion');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -545,7 +548,7 @@ export default function AdminPromotions() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDeletePromotion(promotion.id)}
+                      onClick={() => setDeleteTarget(promotion)}
                       className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors"
                     >
                       <Trash2 size={16} />
@@ -583,8 +586,8 @@ export default function AdminPromotions() {
 
         {/* Add/Edit Modal */}
         {(showAddModal || editingPromotion) && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-900">
@@ -603,128 +606,134 @@ export default function AdminPromotions() {
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
-                {/* Promotion Image Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Promotion Image
-                  </label>
-                  <ImageUpload
-                    onUpload={handleImageUpload}
-                    currentImage={formData.cloudinary_url}
-                    folder="nn-restaurant/promotions"
-                  />
-                </div>
-
-                {/* Title */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                    placeholder="Enter promotion title"
-                    required
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                    placeholder="Enter promotion description"
-                    required
-                  />
-                </div>
-
-                {/* Discount Type */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+              <div className="p-6">
+                <div className="flex flex-col lg:flex-row gap-6 max-h-[60vh] overflow-y-auto pr-1">
+                  {/* Promotion Image Upload */}
+                  <div className="lg:w-5/12 flex-shrink-0">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Discount Percentage
+                      Promotion Image
                     </label>
-                    <div className="relative">
-                      <Percent size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="number"
-                        value={formData.discount_percentage}
-                        onChange={(e) => setFormData({ ...formData, discount_percentage: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                        placeholder="0"
-                        min="0"
-                        max="100"
+                    <div className="rounded-xl border border-dashed border-gray-200 p-4 h-full flex items-center justify-center bg-gray-50">
+                      <ImageUpload
+                        onUpload={handleImageUpload}
+                        currentImage={formData.cloudinary_url}
+                        folder="nn-restaurant/promotions"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Discount Amount (PKR)
-                    </label>
-                    <div className="relative">
-                      <DollarSign size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <div className="flex-1 space-y-5">
+                    {/* Title */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Title *
+                      </label>
                       <input
-                        type="number"
-                        value={formData.discount_amount}
-                        onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                        placeholder="0"
-                        min="0"
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                        placeholder="Enter promotion title"
+                        required
                       />
                     </div>
-                  </div>
-                </div>
 
-                {/* Date Range */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Valid From *
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.valid_from}
-                      onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                      required
-                    />
-                  </div>
+                    {/* Description */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description *
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        rows={4}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                        placeholder="Enter promotion description"
+                        required
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Valid Until *
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.valid_until}
-                      onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                      required
-                    />
-                  </div>
-                </div>
+                    {/* Discount Type */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Discount Percentage
+                        </label>
+                        <div className="relative">
+                          <Percent size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="number"
+                            value={formData.discount_percentage}
+                            onChange={(e) => setFormData({ ...formData, discount_percentage: e.target.value })}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                            placeholder="0"
+                            min="0"
+                            max="100"
+                          />
+                        </div>
+                      </div>
 
-                {/* Active Status */}
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="active"
-                    checked={formData.active}
-                    onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                    className="w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
-                  />
-                  <label htmlFor="active" className="text-sm font-medium text-gray-700">
-                    Active promotion
-                  </label>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Discount Amount (PKR)
+                        </label>
+                        <div className="relative">
+                          <DollarSign size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="number"
+                            value={formData.discount_amount}
+                            onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                            placeholder="0"
+                            min="0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Date Range */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Valid From *
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.valid_from}
+                          onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Valid Until *
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.valid_until}
+                          onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Active Status */}
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="active"
+                        checked={formData.active}
+                        onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                        className="w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                      />
+                      <label htmlFor="active" className="text-sm font-medium text-gray-700">
+                        Active promotion
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -745,6 +754,41 @@ export default function AdminPromotions() {
                 >
                   <Save size={20} />
                   {editingPromotion ? 'Update Promotion' : 'Create Promotion'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {deleteTarget && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                  <Trash2 size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Delete Promotion</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Are you sure you want to delete{' '}
+                    <span className="font-semibold text-gray-900">
+                      {deleteTarget.title}
+                    </span>
+                    ? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeletePromotion}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/20 transition-all"
+                >
+                  Delete
                 </button>
               </div>
             </div>

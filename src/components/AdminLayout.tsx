@@ -100,7 +100,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:static lg:inset-auto lg:translate-x-0 lg:h-screen flex flex-col ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         {/* Sidebar Header */}
@@ -132,7 +132,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </nav>
 
         {/* User info and logout */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50 flex-shrink-0">
+        <div className="p-4 border-t border-gray-100 bg-gray-50 flex-shrink-0 mt-auto">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-900">{adminUser.username}</p>
@@ -193,7 +193,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
+        <main className="flex-1 p-4 lg:p-6">
           {children}
         </main>
       </div>
