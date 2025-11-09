@@ -234,10 +234,10 @@ export default function AdminOrdersEnhanced() {
         
         // Handle initial load - set baseline (NO NOTIFICATIONS ON FIRST LOAD)
         if (isInitialLoad) {
-          // Initial load baseline (no notifications)
+          // Initial load baseline
           
           // IMPORTANT: Set ALL current orders as baseline to track what we've seen
-          // This prevents showing notifications for orders already in database
+          // This prevents duplicate notifications for existing orders
           const baselineIds = new Set<string>(currentOrders.map((o: Order) => String(o.id)));
           
           previousOrderIdsRef.current = baselineIds;
@@ -251,11 +251,19 @@ export default function AdminOrdersEnhanced() {
           if (newOrdersInDB.length > 0) {
             const newOrderIdsFromDB = newOrdersInDB.map(o => String(o.id));
             
-            // Only mark as new for UI display, but NO toast/sound on initial load
             setNewOrderIds(new Set(newOrderIdsFromDB));
             setNewOrdersCount(newOrdersInDB.length);
             console.log(`📊 New (DB flags) count: ${newOrdersInDB.length}`);
-            // NO TOAST OR SOUND on initial load - these are existing orders
+            
+            // Surface toast & sound so admins are alerted even after refresh
+            newOrdersInDB.forEach((order: Order) => {
+              const customer = order.customer_info?.full_name || 'Unknown Customer';
+              const total = order.totals?.grand_total || 0;
+              showToast(`🎉 New order from ${customer} — Rs. ${Number(total).toLocaleString()}`);
+            });
+            if (soundEnabled) {
+              await playNotificationSound();
+            }
           } else {
             setNewOrderIds(new Set());
             setNewOrdersCount(0);
