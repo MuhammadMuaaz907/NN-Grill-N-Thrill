@@ -28,6 +28,7 @@ function HomeContent() {
     closeCart,
     removeFromCart,
     updateQuantity,
+    addToCart,
     setItems,
     setIsOpen,
   } = useCart();
@@ -103,21 +104,12 @@ function HomeContent() {
         if (result.success && result.data && result.data.length > 0) {
           setPromotions(result.data);
           
-          // Check if user has dismissed popup today (simplified logic)
-          const today = new Date().toDateString();
-          const lastDismissDate = localStorage.getItem('lastPromotionDismissDate');
-          
-          // Show popup if user hasn't dismissed today
-          if (lastDismissDate !== today) {
-            console.log('✅ Showing promotion popup - not dismissed today');
-            // Delay popup by 1.5 seconds for better UX
-            setTimeout(() => {
-              setShowPromotionPopup(true);
-              console.log('🎉 Popup state set to true');
-            }, 1500);
-          } else {
-            console.log('⏭️ Popup already dismissed today');
-          }
+          // Always show popup on page load/refresh with slight delay
+          console.log('✅ Showing promotion popup');
+          setTimeout(() => {
+            setShowPromotionPopup(true);
+            console.log('🎉 Popup state set to true');
+          }, 1500);
         } else {
           console.log('⚠️ No active promotions found');
         }
@@ -132,9 +124,6 @@ function HomeContent() {
   const handleClosePromotionPopup = () => {
     console.log('🔒 Closing promotion popup');
     setShowPromotionPopup(false);
-    // Save dismiss date to localStorage (user can see again tomorrow)
-    localStorage.setItem('lastPromotionDismissDate', new Date().toDateString());
-    console.log('✅ Popup dismissed for today');
   };
 
   const handleShopNow = () => {
@@ -441,6 +430,7 @@ function HomeContent() {
         items={items}
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
+        onAddItem={addToCart}
         recommendedItems={recommendedItems}
       />
       <button

@@ -373,25 +373,55 @@ export default function AdminOrdersEnhanced() {
   }, [autoRefresh]);
 
   useEffect(() => {
-    // Filter orders based on search and status
-    let filtered = orders;
-
-        if (searchTerm) {
-          filtered = filtered.filter(order =>
-            order.order_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (order.customer_info?.full_name && order.customer_info.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            order.customer_info?.mobile?.includes(searchTerm)
-          );
-        }
+    const query = searchTerm.trim().toLowerCase();
+    let working = [...orders];
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => order.status === statusFilter);
+      working = working.filter(order => order.status === statusFilter);
     }
 
-    // Sort by creation time (newest first)
-    filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    if (query) {
+      const scored = working
+        .map(order => {
+          const orderId = order.order_id?.toLowerCase() || '';
+          const customerName = order.customer_info?.full_name?.toLowerCase() || '';
+          const mobile = order.customer_info?.mobile || '';
+          const address = order.customer_info?.address?.toLowerCase() || '';
+          const area = order.customer_info?.area?.toLowerCase() || '';
 
-    setFilteredOrders(filtered);
+          let score = 0;
+
+          if (orderId === query) score += 300;
+          else if (orderId.startsWith(query)) score += 200;
+          else if (orderId.includes(query)) score += 150;
+
+          if (customerName === query) score += 80;
+          else if (customerName.startsWith(query)) score += 60;
+          else if (customerName.includes(query)) score += 40;
+
+          if (mobile.startsWith(query)) score += 50;
+          else if (mobile.includes(query)) score += 30;
+
+          if (address.includes(query)) score += 20;
+          if (area.includes(query)) score += 10;
+
+          return { order, score };
+        })
+        .filter(item => item.score > 0);
+
+      working = scored
+        .sort((a, b) => {
+          if (b.score !== a.score) {
+            return b.score - a.score;
+          }
+          return new Date(b.order.created_at).getTime() - new Date(a.order.created_at).getTime();
+        })
+        .map(item => item.order);
+    } else {
+      working.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    setFilteredOrders(working);
   }, [orders, searchTerm, statusFilter]);
 
   const updateOrderStatus = async (orderId: string, newStatus: Order['status'], adminNotes?: string) => {

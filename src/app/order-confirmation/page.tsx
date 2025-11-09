@@ -4,6 +4,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Clock, MapPin, User } from 'lucide-react';
 import { Suspense, useState, useEffect } from 'react';
+import { useCart } from '@/context/CartContext';
 
 interface OrderData {
   order_id: string;
@@ -22,6 +23,7 @@ function OrderConfirmationContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || 'ORDER-' + Date.now();
   const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const { clearCart } = useCart();
 
   // Fetch order details to show customer name
   useEffect(() => {
@@ -46,6 +48,7 @@ function OrderConfirmationContent() {
   }, [orderId]);
 
   const handleContinueShopping = () => {
+    clearCart();
     router.push('/');
   };
 
