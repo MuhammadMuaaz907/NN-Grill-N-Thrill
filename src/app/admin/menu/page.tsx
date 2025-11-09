@@ -58,6 +58,7 @@ export default function AdminMenu() {
     image_url: '',
     cloudinary_url: ''
   });
+  const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
 
   // Fetch menu items and categories
   useEffect(() => {
@@ -141,24 +142,26 @@ export default function AdminMenu() {
     }
   };
 
-  const handleDeleteItem = async (itemId: string) => {
-    if (!confirm('Are you sure you want to delete this menu item?')) return;
-
+  const handleDeleteItem = async () => {
+    if (!deleteTarget) return;
     try {
-      const response = await fetch(`/api/admin/menu/${itemId}`, {
+      const response = await fetch(`/api/admin/menu/${deleteTarget.id}`, {
         method: 'DELETE'
       });
 
       const result = await response.json();
       
       if (result.success) {
-        setMenuItems(menuItems.filter(item => item.id !== itemId));
+        setMenuItems(prev => prev.filter(item => item.id !== deleteTarget.id));
+        setDeleteTarget(null);
       } else {
         alert('Error deleting menu item: ' + result.error);
       }
     } catch (error) {
       console.error('Error deleting menu item:', error);
       alert('Error deleting menu item');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -347,7 +350,7 @@ export default function AdminMenu() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDeleteItem(item.id)}
+                    onClick={() => setDeleteTarget(item)}
                     className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />
@@ -384,8 +387,8 @@ export default function AdminMenu() {
 
         {/* Add/Edit Modal */}
         {(showAddModal || editingItem) && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-900">
@@ -404,100 +407,106 @@ export default function AdminMenu() {
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
-                {/* Item Image Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Item Image
-                  </label>
-                  <ImageUpload
-                    onUpload={handleImageUpload}
-                    currentImage={formData.cloudinary_url}
-                    folder="nn-restaurant/menu"
-                  />
-                </div>
-
-                {/* Item Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Item Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                    placeholder="Enter item name"
-                    required
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                    placeholder="Enter item description"
-                    required
-                  />
-                </div>
-
-                {/* Price and Category */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+              <div className="p-6">
+                <div className="flex flex-col lg:flex-row gap-6 max-h-[60vh] overflow-y-auto pr-1">
+                  {/* Item Image Upload */}
+                  <div className="lg:w-1/2 flex-shrink-0">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Price (PKR) *
+                      Item Image
                     </label>
-                    <div className="relative">
-                      <DollarSign size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="number"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                        placeholder="0"
-                        required
+                    <div className="rounded-xl border border-dashed border-gray-200 p-4 h-full flex items-center justify-center bg-gray-50">
+                      <ImageUpload
+                        onUpload={handleImageUpload}
+                        currentImage={formData.cloudinary_url}
+                        folder="nn-restaurant/menu"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category *
-                    </label>
-                    <select
-                      value={formData.category_id}
-                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
-                      required
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map(category => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                  <div className="flex-1 space-y-5">
+                    {/* Item Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Item Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                        placeholder="Enter item name"
+                        required
+                      />
+                    </div>
 
-                {/* Availability */}
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="available"
-                    checked={formData.available}
-                    onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
-                    className="w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
-                  />
-                  <label htmlFor="available" className="text-sm font-medium text-gray-700">
-                    Available for order
-                  </label>
+                    {/* Description */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description *
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        rows={4}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                        placeholder="Enter item description"
+                        required
+                      />
+                    </div>
+
+                    {/* Price and Category */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Price (PKR) *
+                        </label>
+                        <div className="relative">
+                          <DollarSign size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="number"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                            placeholder="0"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Category *
+                        </label>
+                        <select
+                          value={formData.category_id}
+                          onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all"
+                          required
+                        >
+                          <option value="">Select Category</option>
+                          {categories.map(category => (
+                            <option key={category.id} value={category.id}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Availability */}
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="available"
+                        checked={formData.available}
+                        onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+                        className="w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                      />
+                      <label htmlFor="available" className="text-sm font-medium text-gray-700">
+                        Available for order
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -518,6 +527,41 @@ export default function AdminMenu() {
                 >
                   <Save size={20} />
                   {editingItem ? 'Update Item' : 'Add Item'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {deleteTarget && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                  <Trash2 size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Delete Menu Item</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Are you sure you want to delete{' '}
+                    <span className="font-semibold text-gray-900">
+                      {deleteTarget.name}
+                    </span>
+                    ? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteItem}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/20 transition-all"
+                >
+                  Delete
                 </button>
               </div>
             </div>
