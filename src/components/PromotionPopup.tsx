@@ -108,8 +108,8 @@ export function PromotionPopup({ promotions, onClose, onShopNow }: PromotionPopu
             {/* Overlay Gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-            {/* Discount Badge - Smaller, top-right */}
-            <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+            {/* Discount Badge - Top-left */}
+            <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
               <div className="bg-yellow-400 text-yellow-900 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-sm sm:text-base flex items-center gap-1.5 sm:gap-2 shadow-lg animate-pulse">
                 <Tag size={16} className="sm:w-5 sm:h-5" />
                 {currentPromotion.discount_percentage ? (

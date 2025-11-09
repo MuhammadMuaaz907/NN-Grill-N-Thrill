@@ -16,6 +16,7 @@ interface CartDrawerProps {
   items: CartItem[];
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   onRemoveItem: (itemId: string) => void;
+  onAddItem: (item: MenuItem) => void;
   recommendedItems?: MenuItem[];
 }
 
@@ -25,6 +26,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   items,
   onUpdateQuantity,
   onRemoveItem,
+  onAddItem,
   recommendedItems = []
 }) => {
   const router = useRouter(); // Add this
@@ -229,7 +231,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         </p>
                         <p className="text-[10px] md:text-xs text-gray-600 mt-1">Rs. {item.price}</p>
                         <button
-                          onClick={() => onUpdateQuantity(item.id, 1)}
+                          onClick={() => onAddItem(item)}
                           className="mt-1 md:mt-2 text-pink-600 hover:bg-pink-100 w-full p-1 rounded transition"
                         >
                           <Plus size={12} className="mx-auto md:w-[14px] md:h-[14px]" />

@@ -107,7 +107,7 @@ export const Carousel: React.FC<CarouselProps> = ({
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-60 text-white p-2 sm:p-2.5 md:p-3 rounded transition z-20"
+        className="absolute left-0 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/55 text-white px-1.5 sm:px-1 md:px-1.5 py-4 sm:py-5 md:py-7 rounded-r-lg transition z-20 backdrop-blur-sm"
         aria-label="Previous slide"
       >
         <ChevronLeft size={20} className="md:w-6 md:h-6" />
@@ -115,7 +115,7 @@ export const Carousel: React.FC<CarouselProps> = ({
 
       <button
         onClick={nextSlide}
-        className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-60 text-white p-2 sm:p-2.5 md:p-3 rounded transition z-20"
+        className="absolute right-0 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/55 text-white px-1.5 sm:px-1 md:px-1.5 py-4 sm:py-5 md:py-7 rounded-l-lg transition z-20 backdrop-blur-sm"
         aria-label="Next slide"
       >
         <ChevronRight size={20} className="md:w-6 md:h-6" />
