@@ -53,80 +53,91 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
     }, 300);
   };
 
+  const originalPrice =
+    (item as unknown as { originalPrice?: number; original_price?: number }).originalPrice ??
+    (item as unknown as { originalPrice?: number; original_price?: number }).original_price ??
+    null;
+
   return (
     <div
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative rounded-xl sm:rounded-2xl overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+      className="group relative flex items-stretch gap-2 sm:gap-3 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md hover:shadow-xl transition-all duration-300 p-2 sm:px-3 sm:py-3 w-full max-w-[340px] sm:max-w-[360px] h-[160px] sm:h-[180px]"
     >
-      {/* Image Container - Fully Clickable */}
-      <div className="relative flex-1 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden min-h-48 sm:min-h-56 md:min-h-64">
+      {/* Thumbnail */}
+      <div
+        className="relative shrink-0 flex items-center justify-center w-32 sm:w-36 h-full bg-gray-100 rounded-2xl overflow-hidden"
+      >
         {item.image ? (
           <img
             src={item.image}
             alt={item.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full object-cover transition-transform duration-300 ${
+              isHovered ? 'scale-105' : 'scale-100'
+            }`}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-4xl sm:text-5xl md:text-6xl">🍽️</span>
+          <div className="w-full h-full flex items-center justify-center text-3xl sm:text-4xl">
+            🍽️
           </div>
         )}
-
-        {/* Price Badge - Fully Clickable */}
-        <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 bg-white rounded-full px-3 py-1.5 sm:px-4 sm:py-2 shadow-md font-bold text-gray-900 pointer-events-none text-sm sm:text-base">
-          Rs. {item.price}
-        </div>
-
-        {/* Overlay on Hover - Fully Clickable */}
-        {isHovered && (
-          <div className="absolute inset-0 bg-black bg-opacity-10 transition-opacity duration-300" />
-        )}
+        {isHovered && <div className="absolute inset-0 bg-black/10" />}
       </div>
 
-      {/* Content Section - Fully Clickable */}
-      <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between">
-        <div>
-          <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 line-clamp-2">
+      {/* Content */}
+      <div className="flex-1 flex flex-col h-full justify-between gap-1 sm:gap-1 pt-2 sm:pt-3 pb-2 sm:pb-3 pr-1 sm:pr-2">
+        <div className="space-y-1 ">
+          <h3 className="text-sm sm:text-sm font-bold text-gray-900 line-clamp-1">
             {item.name}
           </h3>
-
-          <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2">
+          <p className="text-xs sm:text-xs text-gray-600 line-clamp-2">
             {item.description}
           </p>
+           
         </div>
 
-        {/* Add to Cart Button - With Loading and Success States */}
-        <button
-          onClick={handleAddToCartClick}
-          disabled={isLoading || isAdded}
-          className={`w-full font-semibold py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 text-sm sm:text-base ${
-            isAdded
-              ? 'bg-green-600 hover:bg-green-700 text-white'
-              : isLoading
-              ? 'bg-pink-400 text-white cursor-wait'
-              : 'bg-pink-600 hover:bg-pink-700 text-white'
-          }`}
-          aria-label={`Add ${item.name} to cart`}
-        >
-          {isAdded ? (
-            <>
-              <Check size={18} className="sm:w-5 sm:h-5" />
-              <span>Added to Cart</span>
-            </>
-          ) : isLoading ? (
-            <>
-              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Adding...</span>
-            </>
-          ) : (
-            <>
-              <Plus size={18} className="sm:w-5 sm:h-5" />
-              <span>Add to Cart</span>
-            </>
-          )}
-        </button>
+         <div className="pt-1 sm:pt-1 space-y-1">
+         <div className="flex items-baseline">
+             {originalPrice && (
+               <span className="text-[11px] text-gray-400 line-through">
+                 Rs. {originalPrice}
+               </span>
+             )}
+             <span className="text-sm  font-bold text-pink-600">
+               Rs. {item.price}
+             </span>
+           </div>
+          <button
+            onClick={handleAddToCartClick}
+            disabled={isLoading || isAdded}
+            className={`inline-flex items-center justify-center gap-2 px-4 sm:px-4 py-1.5 sm:py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95 ${
+              isAdded
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : isLoading
+                ? 'bg-pink-400 text-white cursor-wait'
+                : 'bg-pink-600 hover:bg-pink-700 text-white'
+            }`}
+            aria-label={`Add ${item.name} to cart`}
+          >
+            {isAdded ? (
+              <>
+                <Check size={16} className="sm:w-4 sm:h-4" />
+                <span>Added</span>
+              </>
+            ) : isLoading ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Adding...</span>
+              </>
+            ) : (
+              <>
+                <Plus size={16} className="sm:w-4 sm:h-4" />
+                <span>Add to Cart</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
